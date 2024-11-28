@@ -1,70 +1,129 @@
-import { NextResponse } from 'next/server';
-import { auth } from '@clerk/nextjs';
-import { prisma } from '@/lib/prisma';
+import { NextRequest, NextResponse } from "next/server";
+import { getSession } from "@/lib/auth";
+import {prisma} from "@/lib/prisma";
+import { z } from "zod";
+
+// Schema for validating the request body
+const settingsSchema = z.object({
+  name: z.string().optional(),
+  headline: z.string().optional(),
+  bio: z.string().optional(),
+  location: z.string().optional(),
+  resumeUrl: z.string().url().optional().nullable(),
+  image: z.string().url().optional(),
+  socialLinks: z.array(z.object({
+    id: z.string().optional(),
+    platform: z.enum([
+      "GITHUB",
+      "LINKEDIN",
+      "TWITTER",
+      "INSTAGRAM",
+      "FACEBOOK",
+      "YOUTUBE",
+      "DRIBBBLE",
+      "BEHANCE",
+      "MEDIUM",
+      "DEVTO",
+      "WEBSITE",
+      "OTHER"
+    ]),
+    url: z.string().url(),
+  })).optional(),
+});
 
 export async function GET() {
   try {
-    const { userId } = auth();
-    if (!userId) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      );
+    const session = await getSession();
+
+    if (!session?.email) {
+      return new NextResponse("Unauthorized", { status: 401 });
     }
 
     const user = await prisma.user.findUnique({
-      where: { clerkId: userId },
+      where: {
+        email: session.email,
+      },
       select: {
         id: true,
         name: true,
         email: true,
+        image: true,
         bio: true,
-        avatar: true,
-        socialLinks: true,
+        headline: true,
+        location: true,
         resumeUrl: true,
-        theme: true,
+        role: true,
+        socialLinks: {
+          select: {
+            id: true,
+            platform: true,
+            url: true,
+          },
+        },
       },
     });
 
     if (!user) {
-      return NextResponse.json(
-        { error: 'User not found' },
-        { status: 404 }
-      );
+      return new NextResponse("User not found", { status: 404 });
     }
 
     return NextResponse.json(user);
   } catch (error) {
-    console.error('Error fetching user settings:', error);
-    return NextResponse.json(
-      { error: 'Failed to fetch user settings' },
-      { status: 500 }
-    );
+    console.error("[SETTINGS_GET]", error);
+    return new NextResponse("Internal error", { status: 500 });
   }
 }
 
-export async function PUT(request: Request) {
+export async function PATCH(req: NextRequest) {
   try {
-    const { userId } = auth();
-    if (!userId) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      );
+    const session = await getSession();
+
+    if (!session?.email) {
+      return new NextResponse("Unauthorized", { status: 401 });
     }
 
-    const data = await request.json();
-    const user = await prisma.user.update({
-      where: { clerkId: userId },
-      data,
+    const body = await req.json();
+    const validatedData = settingsSchema.parse(body);
+
+    // Start a transaction to handle social links update
+    const user = await prisma.$transaction(async (tx) => {
+      // If socialLinks are provided, delete existing ones and create new ones
+      if (validatedData.socialLinks) {
+        await tx.socialLink.deleteMany({
+          where: {
+            user: {
+              email: session.email,
+            },
+          },
+        });
+      }
+
+      return tx.user.update({
+        where: {
+          email: session.email,
+        },
+        data: {
+          ...validatedData,
+          socialLinks: validatedData.socialLinks ? {
+            create: validatedData.socialLinks.map(link => ({
+              platform: link.platform,
+              url: link.url,
+            })),
+          } : undefined,
+        },
+        include: {
+          socialLinks: true,
+        },
+      });
     });
 
     return NextResponse.json(user);
   } catch (error) {
-    console.error('Error updating user settings:', error);
-    return NextResponse.json(
-      { error: 'Failed to update user settings' },
-      { status: 500 }
-    );
+    if (error instanceof z.ZodError) {
+      return new NextResponse("Invalid request data", { status: 422 });
+    }
+
+    console.error("[SETTINGS_PATCH]", error);
+    return new NextResponse("Internal error", { status: 500 });
   }
 }
