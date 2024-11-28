@@ -1,0 +1,176 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+enum SocialPlatform {
+  GITHUB
+  LINKEDIN
+  TWITTER
+  INSTAGRAM
+  FACEBOOK
+  YOUTUBE
+  DRIBBBLE
+  BEHANCE
+  MEDIUM
+  DEVTO
+  WEBSITE
+  OTHER
+}
+
+model User {
+  id            String     @id @default(cuid())
+  name          String?
+  email         String     @unique
+  password      String
+  image         String?    @default("https://utfs.io/f/YEfzMnNI58dJAfVq00rBzWjt0EUvLkF7MmQ681PaIK9SYpHx")
+  role          Role       @default(USER)
+  bio           String?    @db.Text
+  headline      String?
+  location      String?
+  resumeUrl     String?
+  socialLinks   SocialLink[]
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+  blogs         Blog[]
+  bookmarks     Bookmark[]
+  comments      Comment[]
+  likes         Like[]
+}
+
+model SocialLink {
+  id        String         @id @default(cuid())
+  platform  SocialPlatform
+  name      String
+  url       String
+  icon      String
+  userId    String
+  user      User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+
+  @@index([userId])
+}
+
+model Project {
+  id           String   @id @default(cuid())
+  title        String
+  description  String
+  content      String
+  technologies String[]
+  techStack    String[]
+  images       String[]
+  github       String?
+  link         String?
+  featured     Boolean  @default(false)
+  status       String   @default("PLANNED")
+  published    Boolean  @default(false)
+  slug         String   @unique
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model Skill {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  icon        String?
+  level       Int      @default(0)
+  proficiency Int      @default(0)
+  category    String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Experience {
+  id           String    @id @default(cuid())
+  position     String
+  company      String
+  location     String?
+  startDate    DateTime
+  endDate      DateTime?
+  description  String
+  type         String
+  technologies String[]
+  current      Boolean   @default(false)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  companyUrl   String?
+}
+
+model Blog {
+  id              String     @id @default(cuid())
+  title           String
+  slug            String     @unique
+  content         String
+  excerpt         String?
+  coverImage      String?
+  featured        Boolean    @default(false)
+  published       Boolean    @default(false)
+  views           Int        @default(0)
+  readingTime     Int        @default(0)
+  category        String?
+  tags            String[]
+  metaDescription String?
+  createdAt       DateTime   @default(now())
+  updatedAt       DateTime   @updatedAt
+  userId          String
+  user            User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  bookmarks       Bookmark[]
+  comments        Comment[]
+  likes           Like[]
+
+  @@index([userId])
+  @@index([slug])
+  @@index([category])
+}
+
+model Comment {
+  id        String   @id @default(cuid())
+  content   String
+  blogId    String
+  userId    String
+  approved  Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  blog      Blog     @relation(fields: [blogId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([blogId])
+  @@index([userId])
+}
+
+model Like {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  userId    String
+  blogId    String
+  blog      Blog     @relation(fields: [blogId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, blogId])
+  @@index([userId])
+  @@index([blogId])
+}
+
+model Bookmark {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  userId    String
+  blogId    String
+  blog      Blog     @relation(fields: [blogId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, blogId])
+  @@index([userId])
+  @@index([blogId])
+}

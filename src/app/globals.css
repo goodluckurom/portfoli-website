@@ -1,0 +1,136 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Theme colors will be set via CSS variables from ThemeProvider */
+    --background-main: #ffffff;
+    --background-alt: #f8fafc;
+    
+    --primary-50: #f8fafc;
+    --primary-100: #f1f5f9;
+    --primary-200: #e2e8f0;
+    --primary-300: #cbd5e1;
+    --primary-400: #94a3b8;
+    --primary-500: #64748b;
+    --primary-600: #475569;
+    --primary-700: #334155;
+    --primary-800: #1e293b;
+    --primary-900: #0f172a;
+    
+    --accent-50: #f0f9ff;
+    --accent-100: #e0f2fe;
+    --accent-200: #bae6fd;
+    --accent-300: #7dd3fc;
+    --accent-400: #38bdf8;
+    --accent-500: #0ea5e9;
+    --accent-600: #0284c7;
+    --accent-700: #0369a1;
+    --accent-800: #075985;
+    --accent-900: #0c4a6e;
+
+    --text-primary: var(--primary-900);
+    --text-secondary: var(--primary-600);
+  }
+
+  .dark {
+    --background-main: #1e293b;
+    --background-alt: #0f172a;
+    
+    --primary-50: #0f172a;
+    --primary-100: #1e293b;
+    --primary-200: #334155;
+    --primary-300: #475569;
+    --primary-400: #64748b;
+    --primary-500: #94a3b8;
+    --primary-600: #cbd5e1;
+    --primary-700: #e2e8f0;
+    --primary-800: #f1f5f9;
+    --primary-900: #f8fafc;
+    
+    --accent-50: #0c4a6e;
+    --accent-100: #075985;
+    --accent-200: #0369a1;
+    --accent-300: #0284c7;
+    --accent-400: #0ea5e9;
+    --accent-500: #38bdf8;
+    --accent-600: #7dd3fc;
+    --accent-700: #bae6fd;
+    --accent-800: #e0f2fe;
+    --accent-900: #f0f9ff;
+
+    --text-primary: var(--primary-50);
+    --text-secondary: var(--primary-400);
+  }
+}
+
+@layer base {
+
+  /* Scrollbar styles */
+  ::-webkit-scrollbar {
+    width: 12px;
+    height: 12px;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background-color: var(--primary-300);
+    border-radius: 6px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background-color: var(--primary-400);
+  }
+
+  ::-webkit-scrollbar-track {
+    background-color: var(--background-alt);
+  }
+
+  ::-webkit-scrollbar-corner {
+    background-color: var(--background-alt);
+    }
+
+}
+
+@layer base {
+  * {
+    @apply transition-colors duration-300;
+  }
+
+  body {
+    @apply bg-background-main text-text-primary;
+  }
+}
+
+@layer base {
+  /* Floating shapes */
+  .clip-path-triangle {
+    clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
+  }
+}
+
+@layer components {
+  .heading-1 {
+    @apply text-4xl font-bold text-text-primary;
+  }
+
+  .heading-2 {
+    @apply text-3xl font-bold text-text-primary;
+  }
+
+  .heading-3 {
+    @apply text-2xl font-bold text-text-primary;
+  }
+
+  .card {
+    @apply p-6 bg-background-main dark:bg-primary-100 rounded-xl shadow-lg;
+  }
+
+  .button-primary {
+    @apply inline-flex items-center px-6 py-3 rounded-lg bg-accent-600 text-white hover:bg-accent-700 dark:bg-accent-500 dark:hover:bg-accent-600 transition-colors;
+  }
+
+  .button-secondary {
+    @apply inline-flex items-center px-6 py-3 rounded-lg border-2 border-primary-900 text-text-primary hover:bg-primary-50 hover:bg-opacity-10 dark:border-primary-50 dark:hover:bg-primary-50 dark:hover:bg-opacity-10 transition-colors;
+  }
+}

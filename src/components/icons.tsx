@@ -1,0 +1,126 @@
+import {
+  Calendar,
+  Clock,
+  Code2,
+  Eye,
+  EyeOff,
+  FileText,
+  Globe,
+  Mail,
+  Menu,
+  Moon,
+  SunMedium,
+  X,
+  User,
+  Github,
+  LogOut,
+  HeartPulse,
+  LucideIcon,
+  FileTextIcon,
+  Star,
+  MoreVertical,
+  MoreVerticalIcon,
+  LockIcon,
+  ChevronLeft,
+  Pencil,
+  Trash,
+  ChevronRight,
+  ChevronDown,
+  Plus,
+  Settings,
+  AlertTriangle,
+  Check,
+  Heart,
+  MessageSquare,
+  Bookmark,
+  BookmarkCheck,
+  Instagram,
+  Facebook,
+  Youtube,
+  Briefcase,
+  Linkedin,
+  Twitter,
+  Loader2,
+  Share2,
+  Edit,
+  HeartPulseIcon,
+  View,
+  PlusCircleIcon,
+  User2,
+  LucideUploadCloud,
+  UploadCloudIcon,
+  Link,
+  BookmarkMinus,
+  LogIn,
+  Map
+} from "lucide-react";
+
+const icons = {
+  calendar: Calendar,
+  clock: Clock,
+  sun: SunMedium,
+  moon: Moon,
+  eye: Eye,
+  eyeOff: EyeOff,
+  menu: Menu,
+  x: X,
+  user: User,
+  github: Github,
+  logout: LogOut,
+  heartPulse: HeartPulse,
+  code: Code2,
+  globe: Globe,
+  mail: Mail,
+  fileText: FileTextIcon,
+  star: Star,
+  more: MoreVerticalIcon,
+  lock: LockIcon,
+  chevronleft: ChevronLeft,
+  chevronright: ChevronRight,
+  chevrondown: ChevronDown,
+  pencil: Pencil,
+  trash: Trash,
+  plus: Plus,
+  settings: Settings,
+  alert: AlertTriangle,
+  check: Check,
+  heart: Heart,
+  message: MessageSquare,
+  bookmark: Bookmark,
+  bookmarkFilled: BookmarkCheck,
+  instagram: Instagram,
+  facebook: Facebook,
+  youtube: Youtube,
+  briefcase: Briefcase,
+  linkedin: Linkedin,
+  twitter: Twitter,
+  spinner: Loader2,
+  share: Share2,
+  edit: Edit,
+  delete: Trash,
+  heartFilled: Heart,
+  view: View,
+  add: PlusCircleIcon,
+  post: UploadCloudIcon,
+  link: Link,
+  bookmarkminus: BookmarkMinus,
+  login: LogIn,
+  mapPin:Map
+} as const;
+
+export type IconName = keyof typeof icons;
+
+interface IconProps extends React.SVGProps<SVGSVGElement> {
+  name: IconName;
+  className?: string;
+}
+
+export function Icons({ name, className, ...props }: IconProps) {
+  const Icon = icons[name];
+
+  if (!Icon) {
+    throw new Error(`Icon "${name}" not found in icons object`);
+  }
+
+  return <Icon className={className} {...props} />;
+}

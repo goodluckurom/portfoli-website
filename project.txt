@@ -1,0 +1,16 @@
+for the projects, let there be image fields where i would upload png images(icons) of the technology used to build them, so that on the 
+project card where the project image would be displayed, the images of the tecthnology would 
+be displayed in a row on the card accross the project images
+
+Technologies
+Next.js
+React
+Tailwind CSS
+Prisma
+Pusher
+NextAuth
+TypeScript
+Zustand
+Cloudinary
+Bcrypt
+Headless Ui
