@@ -1,6 +1,23 @@
 import Link from 'next/link';
 import { Icons } from '@/components/icons';
 import type { SocialLink } from '@prisma/client';
+import type { IconName } from '@/components/icons';
+import { SocialPlatform } from '@prisma/client';
+
+const socialPlatformIcons: Record<SocialPlatform, IconName> = {
+  [SocialPlatform.GITHUB]: 'github',
+  [SocialPlatform.TWITTER]: 'twitter',
+  [SocialPlatform.LINKEDIN]: 'linkedin',
+  [SocialPlatform.INSTAGRAM]: 'instagram',
+  [SocialPlatform.FACEBOOK]: 'facebook',
+  [SocialPlatform.YOUTUBE]: 'youtube',
+  [SocialPlatform.DRIBBBLE]: 'globe',
+  [SocialPlatform.BEHANCE]: 'globe',
+  [SocialPlatform.MEDIUM]: 'globe',
+  [SocialPlatform.DEVTO]: 'code',
+  [SocialPlatform.WEBSITE]: 'globe',
+  [SocialPlatform.OTHER]: 'link'
+};
 
 interface SocialLinksProps {
   links: SocialLink[];
@@ -18,7 +35,10 @@ export function SocialLinks({ links, className = '' }: SocialLinksProps) {
           rel="noopener noreferrer"
           className="text-muted-foreground hover:text-foreground transition-colors"
         >
-          <Icons name={link.icon.toLowerCase()} className="h-5 w-5" />
+          <Icons 
+            name={socialPlatformIcons[link.platform]} 
+            className="h-5 w-5" 
+          />
           <span className="sr-only">{link.name}</span>
         </Link>
       ))}

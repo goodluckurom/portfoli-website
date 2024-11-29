@@ -9,7 +9,7 @@ const skillSchema = z.object({
   icon: z.string().optional().nullable(),
   level: z.number().min(0).max(100).default(0),
   proficiency: z.number().min(0).max(100).default(0),
-  category: z.string().optional().nullable(),
+  category: z.string().default(''),
 });
 
 export async function GET(
@@ -63,7 +63,14 @@ export async function PUT(
 
     const skill = await prisma.skill.update({
       where: { id: params.id },
-      data: validation.data,
+      data: {
+        name: validation.data.name,
+        description: validation.data.description,
+        icon: validation.data.icon,
+        level: validation.data.level,
+        proficiency: validation.data.proficiency,
+        category: validation.data.category,
+      },
     });
 
     return NextResponse.json(skill);

@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getSession } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
-import { utapi } from '@/lib/uploadthing';
+import { utapi } from '@/lib/uploadthing.server';
 
 export async function DELETE(req: Request) {
   try {
@@ -26,7 +26,7 @@ export async function DELETE(req: Request) {
       return new NextResponse('Invalid resume URL', { status: 400 });
     }
 
-    // Delete file from uploadthing
+    // Delete file from UploadThing
     await utapi.deleteFiles([fileKey]);
 
     // Update user record

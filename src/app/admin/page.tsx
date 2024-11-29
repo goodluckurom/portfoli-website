@@ -129,7 +129,7 @@ export default function AdminPage() {
                   )}
                 </div>
               </div>
-              <div className="absolute bottom-0 left-0 right-0 h-1 bg-primary/10" />
+              <div className="absolute bottom-0 left-0 right-0 h-1 bg-primary-200/10" />
             </Link>
           </Card>
         ))}
@@ -142,7 +142,7 @@ export default function AdminPage() {
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-lg font-semibold">Recent Blog Posts</h2>
             <Link
-              href="/admin/blogs/create"
+              href="/admin/blogs/new"
               className="text-sm text-primary hover:underline"
             >
               Create New

@@ -266,7 +266,7 @@ export function ProjectForm({ project }: ProjectFormProps) {
                             }}
                             className="absolute right-1 top-1 rounded-full bg-red-500 p-1 text-white hover:bg-red-600"
                           >
-                            <Icons.close className="h-4 w-4" />
+                            <Icons name='x' className="h-4 w-4" />
                           </button>
                         </div>
                       ))}

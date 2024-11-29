@@ -1,7 +1,8 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { encrypt, setAuthCookie } from '@/lib/auth';
+import { encrypt } from '@/lib/auth';
 import { compare } from 'bcryptjs';
+import { cookies } from 'next/headers';
 
 export async function POST(request: Request) {
   try {
@@ -48,22 +49,27 @@ export async function POST(request: Request) {
     // Create JWT token
     const token = await encrypt(session);
 
-    // Set cookie
-    setAuthCookie(token);
+    // Set cookie with specific options for production
+    const cookieStore = cookies();
+    cookieStore.set('session', token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 60 * 60 * 24, // 1 day
+      path: '/',
+    });
 
-    return NextResponse.json({
-      user: {
-        id: user.id,
-        email: user.email,
-        name: user.name,
-        image: user.image,
-        role: user.role,
-      },
+    // Remove password from user object
+    const { password: _, ...userWithoutPassword } = user;
+
+    return NextResponse.json({ 
+      user: userWithoutPassword,
+      message: 'Logged in successfully' 
     });
   } catch (error) {
-    console.error('[LOGIN_ERROR]', error);
+    console.error('Login error:', error);
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: 'An error occurred during login' },
       { status: 500 }
     );
   }

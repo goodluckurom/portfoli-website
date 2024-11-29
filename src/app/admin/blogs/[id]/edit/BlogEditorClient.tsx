@@ -5,8 +5,13 @@ import { Blog } from '@prisma/client';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 
+type SerializedBlog = Omit<Blog, 'createdAt' | 'updatedAt'> & {
+  createdAt: string;
+  updatedAt: string;
+};
+
 interface BlogEditorClientProps {
-  blog: Blog;
+  blog: SerializedBlog;
 }
 
 export function BlogEditorClient({ blog }: BlogEditorClientProps) {
@@ -19,7 +24,11 @@ export function BlogEditorClient({ blog }: BlogEditorClientProps) {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(data),
+        body: JSON.stringify({
+          ...data,
+          createdAt: blog.createdAt,
+          updatedAt: new Date().toISOString(),
+        }),
       });
 
       if (!response.ok) {
@@ -27,12 +36,10 @@ export function BlogEditorClient({ blog }: BlogEditorClientProps) {
       }
 
       toast.success('Blog updated successfully');
-      router.push('/admin/blogs');
       router.refresh();
     } catch (error) {
       console.error('Error updating blog:', error);
       toast.error('Failed to update blog');
-      throw error;
     }
   };
 

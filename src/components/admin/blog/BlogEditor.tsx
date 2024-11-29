@@ -21,7 +21,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import { toast } from 'sonner';
 import { Icons } from '@/components/icons';
-import { UploadButton } from '@/lib/uploadthing';
+import { uploadFiles, deleteUploadThing } from '@/lib/uploadthing';
 import dynamic from 'next/dynamic';
 import { useThemeContext } from '@/providers/ThemeProvider';
 
@@ -30,13 +30,18 @@ const MDEditor = dynamic(
   { ssr: false }
 );
 
+type SerializedBlog = Omit<Blog, 'createdAt' | 'updatedAt'> & {
+  createdAt: string;
+  updatedAt: string;
+};
+
 const blogFormSchema = z.object({
   title: z.string().min(1, 'Title is required'),
   content: z.string().min(1, 'Content is required'),
   excerpt: z.string().min(1, 'Excerpt is required'),
   coverImage: z.string().optional(),
   category: z.string().min(1, 'Category is required'),
-  tags: z.string().transform((str) => str.split(',').map((s) => s.trim())),
+  tags: z.array(z.string()).default([]),
   metaDescription: z.string().min(1, 'Meta description is required'),
   published: z.boolean().default(false),
   featured: z.boolean().default(false),
@@ -45,7 +50,7 @@ const blogFormSchema = z.object({
 type BlogFormValues = z.infer<typeof blogFormSchema>;
 
 interface BlogEditorProps {
-  blog?: Blog;
+  blog?: SerializedBlog;
   onSave: (data: BlogFormValues) => Promise<void>;
 }
 
@@ -62,12 +67,45 @@ export function BlogEditor({ blog, onSave }: BlogEditorProps) {
       excerpt: blog?.excerpt || '',
       coverImage: blog?.coverImage || '',
       category: blog?.category || '',
-      tags: blog?.tags?.join(', ') || '',
+      tags: blog?.tags || [],
       metaDescription: blog?.metaDescription || '',
       published: blog?.published || false,
       featured: blog?.featured || false,
     },
   });
+
+  const handleImageUpload = async (file: File): Promise<string> => {
+    try {
+      const [res] = await uploadFiles("blogImageUploader", {
+        files: [file],
+      });
+
+      if (!res) {
+        throw new Error("Failed to upload image");
+      }
+
+      return res.url;
+    } catch (error) {
+      console.error("Error uploading image:", error);
+      toast.error("Failed to upload image");
+      throw error;
+    }
+  };
+
+  const handleImageDelete = async (imageUrl: string | undefined) => {
+    if (!imageUrl) return;
+    
+    try {
+      const fileKey = imageUrl.split("/").pop();
+      if (!fileKey) return;
+
+      await deleteUploadThing(fileKey);
+      toast.success("Image deleted successfully");
+    } catch (error) {
+      console.error("Error deleting image:", error);
+      toast.error("Failed to delete image");
+    }
+  };
 
   const onSubmit = async (data: BlogFormValues) => {
     try {
@@ -159,36 +197,67 @@ export function BlogEditor({ blog, onSave }: BlogEditorProps) {
             <FormItem>
               <FormLabel>Cover Image</FormLabel>
               <FormControl>
-                <div className="space-y-2">
-                  {field.value && (
-                    <div className="relative h-40 w-full overflow-hidden rounded-lg">
+                <div className="space-y-4">
+                  {field.value ? (
+                    <div className="relative aspect-video w-full overflow-hidden rounded-lg border border-border">
                       <img
                         src={field.value}
                         alt="Cover"
-                        className="object-cover"
+                        className="h-full w-full object-cover"
                       />
                       <Button
                         variant="destructive"
                         size="sm"
-                        className="absolute right-2 top-2"
-                        onClick={() => field.onChange('')}
+                        className="absolute right-2 top-2 h-8 w-8 p-0"
+                        onClick={async () => {
+                          await handleImageDelete(field.value);
+                          field.onChange('');
+                        }}
                       >
                         <Icons name="trash" className="h-4 w-4" />
                       </Button>
                     </div>
+                  ) : (
+                    <div className="flex flex-col items-center justify-center rounded-lg border border-dashed border-border bg-muted/20 p-8 text-center">
+                      <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">
+                        <Icons name="image" className="h-6 w-6 text-primary" />
+                      </div>
+                      <p className="mt-2 text-sm font-medium">Drag and drop or click to upload</p>
+                      <p className="mt-1 text-xs text-muted-foreground">
+                        PNG, JPG or GIF up to 4MB
+                      </p>
+                    </div>
                   )}
-                  <UploadButton
-                    endpoint="blogImageUploader"
-                    onClientUploadComplete={(res) => {
-                      field.onChange(res?.[0]?.url);
-                      toast.success('Image uploaded successfully');
-                    }}
-                    onUploadError={(error: Error) => {
-                      toast.error(`Failed to upload image: ${error.message}`);
-                    }}
-                  />
+                  <div className="relative">
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={async (e) => {
+                        if (!e.target.files) return;
+                        const file = e.target.files[0];
+                        if (file.size > 10 * 1024 * 1024) {
+                          toast.error("File size should be less than 4MB");
+                          return;
+                        }
+                        const url = await handleImageUpload(file);
+                        field.onChange(url);
+                      }}
+                      className="absolute inset-0 cursor-pointer opacity-0"
+                    />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className="w-full"
+                    >
+                      <Icons name="upload" className="mr-2 h-4 w-4" />
+                      Select Image
+                    </Button>
+                  </div>
                 </div>
               </FormControl>
+              <FormDescription>
+                Recommended size: 1200x630 pixels
+              </FormDescription>
               <FormMessage />
             </FormItem>
           )}
@@ -201,14 +270,18 @@ export function BlogEditor({ blog, onSave }: BlogEditorProps) {
             <FormItem>
               <FormLabel>Tags</FormLabel>
               <FormControl>
-                <Input
-                  placeholder="Enter tags separated by commas"
-                  {...field}
+                <Input 
+                  placeholder="Enter tags separated by commas" 
+                  value={field.value.join(', ')}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    const tags = value ? value.split(',').map(tag => tag.trim()).filter(Boolean) : [];
+                    field.onChange(tags);
+                  }}
                 />
               </FormControl>
               <FormDescription>
-                Enter tags separated by commas (e.g., tech, programming,
-                web development)
+                Separate tags with commas (e.g. "nextjs, react, typescript")
               </FormDescription>
               <FormMessage />
             </FormItem>

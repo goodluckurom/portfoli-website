@@ -51,14 +51,18 @@ export function BlogPageClient({ initialData, session }: BlogPageClientProps) {
   const fetchBlogs = async (page: number) => {
     setIsLoading(true);
     try {
-      const params = new URLSearchParams(searchParams);
-      params.set('page', page.toString());
-      params.set('limit', pagination.limit.toString());
+      // Convert ReadonlyURLSearchParams to regular object
+      const currentParams: Record<string, string> = {};
+      searchParams.forEach((value, key) => {
+        currentParams[key] = value;
+      });
 
-      // Only add published filter if not admin
-      if (!isAdmin) {
-        params.set('published', 'true');
-      }
+      const params = new URLSearchParams({
+        ...currentParams,
+        page: page.toString(),
+        limit: pagination.limit.toString(),
+        ...((!isAdmin) && { published: 'true' }),
+      });
 
       const response = await fetch(`/api/blogs?${params}`);
       if (!response.ok) throw new Error('Failed to fetch blogs');

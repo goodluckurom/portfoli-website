@@ -1,8 +1,6 @@
 import { NextResponse } from 'next/server';
-import { UTApi } from 'uploadthing/server';
+import { utapi } from '@/lib/uploadthing.server';
 import { decrypt } from '@/lib/auth';
-
-const utapi = new UTApi();
 
 export async function POST(request: Request) {
   try {

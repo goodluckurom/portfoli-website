@@ -3,44 +3,14 @@
 import { useRouter } from 'next/navigation';
 import { BlogEditor } from '@/components/admin/blog/BlogEditor';
 import { toast } from '@/components/toast';
-import { useUser } from '@/hooks/use-user';
-import { useAuth } from '@/hooks/use-auth';
-import { useEffect } from 'react';
+import { useState } from 'react';
 
-export function NewBlogClient() {
+export default function NewBlogClient() {
+  const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
-  const { checkAuth } = useAuth();
-  const { user, isLoading, isAdmin } = useUser();
-
-  useEffect(() => {
-    const initAuth = async () => {
-      try {
-        await checkAuth();
-      } catch (error) {
-        console.error('Failed to check auth:', error);
-        toast({
-          title: 'Error',
-          message: 'Failed to verify authentication',
-          type: 'error'
-        });
-      }
-    };
-
-    initAuth();
-  }, [checkAuth]);
-
-  useEffect(() => {
-    if (!isLoading && !isAdmin) {
-      toast({
-        title: 'Unauthorized',
-        message: 'You must be an admin to access this page',
-        type: 'error'
-      });
-      router.push('/');
-    }
-  }, [isLoading, isAdmin, router]);
 
   const handleSave = async (data: any) => {
+    setIsLoading(true);
     try {
       const response = await fetch('/api/blogs', {
         method: 'POST',
@@ -68,7 +38,8 @@ export function NewBlogClient() {
         message: 'Failed to create blog post',
         type: 'error'
       });
-      throw error;
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -78,10 +49,6 @@ export function NewBlogClient() {
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
       </div>
     );
-  }
-
-  if (!isAdmin) {
-    return null;
   }
 
   return <BlogEditor onSave={handleSave} />;

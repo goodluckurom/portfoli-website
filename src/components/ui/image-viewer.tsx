@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import Image from 'next/image';
 import { ChevronLeft, ChevronRight, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -16,9 +16,9 @@ export function ImageViewer({ images, title }: ImageViewerProps) {
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
 
-  const nextSlide = () => {
+  const nextSlide = useCallback(() => {
     setCurrentSlide((prev) => (prev + 1) % images.length);
-  };
+  }, [images.length]);
 
   const prevSlide = () => {
     setCurrentSlide((prev) => (prev - 1 + images.length) % images.length);
@@ -36,7 +36,7 @@ export function ImageViewer({ images, title }: ImageViewerProps) {
     }, 5000);
 
     return () => clearInterval(timer);
-  }, [isPaused, images.length]);
+  }, [isPaused, images.length, nextSlide]);
 
   return (
     <>

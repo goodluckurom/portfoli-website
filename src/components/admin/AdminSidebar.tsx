@@ -13,6 +13,7 @@ import {
   LogOut,
   Home,
   Code,
+  Users,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { motion } from 'framer-motion';
@@ -23,6 +24,7 @@ const navigation = [
   { name: 'Projects', href: '/admin/projects', icon: Briefcase },
   { name: 'Experience', href: '/admin/experience', icon: Award },
   { name: 'Skills', href: '/admin/skills', icon: Code },
+  {name:'Users', href:'/admin/users', icon:Users},
   { name: 'Settings', href: '/admin/settings', icon: Settings },
 ];
 

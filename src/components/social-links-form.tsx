@@ -19,6 +19,22 @@ import { Icons } from '@/components/icons';
 import type { IconName } from '@/components/icons';
 import { socialPlatforms } from '@/lib/validations/settings';
 import type { SettingsFormValues } from '@/lib/validations/settings';
+import { SocialPlatform } from '@prisma/client';
+
+const socialPlatformIcons: Record<SocialPlatform, IconName> = {
+  [SocialPlatform.GITHUB]: 'github',
+  [SocialPlatform.TWITTER]: 'twitter',
+  [SocialPlatform.LINKEDIN]: 'linkedin',
+  [SocialPlatform.INSTAGRAM]: 'instagram',
+  [SocialPlatform.FACEBOOK]: 'facebook',
+  [SocialPlatform.YOUTUBE]: 'youtube',
+  [SocialPlatform.DRIBBBLE]: 'globe',
+  [SocialPlatform.BEHANCE]: 'globe',
+  [SocialPlatform.MEDIUM]: 'globe',
+  [SocialPlatform.DEVTO]: 'code',
+  [SocialPlatform.WEBSITE]: 'globe',
+  [SocialPlatform.OTHER]: 'link'
+};
 
 export function SocialLinksForm() {
   const { control } = useFormContext<SettingsFormValues>();
@@ -36,7 +52,12 @@ export function SocialLinksForm() {
           variant="outline"
           size="sm"
           className="h-8"
-          onClick={() => append({ platform: 'github', url: '' })}
+          onClick={() => append({ 
+            platform: SocialPlatform.GITHUB, 
+            url: '',
+            name: '',
+            icon: ''
+          })}
         >
           <Icons name="add" className="mr-2 h-4 w-4" />
           Add Link
@@ -60,14 +81,18 @@ export function SocialLinksForm() {
                       </SelectTrigger>
                       <SelectContent>
                         {socialPlatforms.map((platform) => (
-                          <SelectItem key={platform} value={platform}>
+                          <SelectItem 
+                            key={platform} 
+                            value={platform}
+                          >
                             <div className="flex items-center">
                               <Icons
-                                name={platform as IconName}
+                                name={socialPlatformIcons[platform as SocialPlatform]}
                                 className="mr-2 h-4 w-4"
                               />
-                              {platform.charAt(0).toUpperCase() +
-                                platform.slice(1)}
+                              {platform.split('_')
+                                .map(word => word.charAt(0) + word.slice(1).toLowerCase())
+                                .join(' ')}
                             </div>
                           </SelectItem>
                         ))}

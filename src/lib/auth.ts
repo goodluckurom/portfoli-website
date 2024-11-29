@@ -61,12 +61,23 @@ export function setAuthCookie(token: string) {
   cookies().set('session', token, {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
-    sameSite: 'lax',
+    sameSite: 'strict',
     maxAge: 60 * 60 * 24, // 1 day
     path: '/',
+    priority: 'high'
   });
 }
 
 export function removeAuthCookie() {
   cookies().delete('session');
+}
+
+export async function verifyToken(token: string) {
+  try {
+    const payload = await decrypt(token);
+    if (!payload) throw new Error('Invalid token');
+    return payload;
+  } catch (error) {
+    throw new Error('Invalid token');
+  }
 }

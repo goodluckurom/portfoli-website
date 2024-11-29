@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { format } from 'date-fns';
-import { Blog, Comment, User } from '@prisma/client';
+import { Blog, Comment } from '@prisma/client';
 import { Icons } from '@/components/icons';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -12,7 +12,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Card } from '@/components/ui/card';
 import { getInitials } from '@/lib/utils';
-import { MDXRemote } from 'next-mdx-remote';
+import { MDXRemote, MDXRemoteSerializeResult } from 'next-mdx-remote';
 import Link from 'next/link';
 import {
   DropdownMenu,
@@ -21,24 +21,29 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
-interface BlogPostClientProps {
-  blog: Blog & {
+type SerializedBlog = Omit<Blog, 'content'> & {
+  content: MDXRemoteSerializeResult;
+  user: {
+    name: string | null;
+    image: string | null;
+  };
+  comments: (Comment & {
     user: {
       name: string | null;
       image: string | null;
     };
-    comments: (Comment & {
-      user: {
-        name: string | null;
-        image: string | null;
-      };
-    })[];
-    _count: {
-      likes: number;
-      bookmarks: number;
-      comments: number;
-    };
+  })[];
+  _count: {
+    likes: number;
+    bookmarks: number;
+    comments: number;
   };
+  liked: boolean;
+  bookmarked: boolean;
+};
+
+interface BlogPostClientProps {
+  blog: SerializedBlog;
   session: {
     id: string;
     name: string | null;
@@ -49,8 +54,8 @@ interface BlogPostClientProps {
 }
 
 export function BlogPostClient({ blog, session }: BlogPostClientProps) {
-  const [isLiked, setIsLiked] = useState(false);
-  const [isBookmarked, setIsBookmarked] = useState(false);
+  const [isLiked, setIsLiked] = useState(blog.liked);
+  const [isBookmarked, setIsBookmarked] = useState(blog.bookmarked);
   const [likeCount, setLikeCount] = useState(blog._count.likes);
   const [bookmarkCount, setBookmarkCount] = useState(blog._count.bookmarks);
   const [comments, setComments] = useState(blog.comments);

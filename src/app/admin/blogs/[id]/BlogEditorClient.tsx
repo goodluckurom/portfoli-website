@@ -3,59 +3,34 @@
 import { useRouter } from 'next/navigation';
 import { Blog } from '@prisma/client';
 import { BlogEditor } from '@/components/admin/blog/BlogEditor';
-import { toast } from '@/components/toast';
+import { useToast } from '@/components/ui/use-toast';
 import { useUser } from '@/hooks/use-user';
 import { useEffect } from 'react';
 
+type SerializedBlog = Omit<Blog, 'createdAt' | 'updatedAt'> & {
+  createdAt: string;
+  updatedAt: string;
+};
+
 interface BlogEditorClientProps {
-  blog: Blog;
+  blog: SerializedBlog;
 }
 
 export function BlogEditorClient({ blog }: BlogEditorClientProps) {
   const router = useRouter();
   const { user, isLoading, isAdmin } = useUser();
+  const { toast } = useToast();
 
   useEffect(() => {
     if (!isLoading && !isAdmin) {
       toast({
         title: 'Unauthorized',
-        message: 'You must be an admin to access this page',
-        type: 'error'
+        description: 'You do not have permission to edit blogs.',
+        variant: 'destructive',
       });
       router.push('/');
     }
-  }, [isLoading, isAdmin, router]);
-
-  const handleSave = async (data: any) => {
-    try {
-      const response = await fetch(`/api/blogs/${blog.id}`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(data),
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to update blog post');
-      }
-
-      toast({
-        title: 'Success',
-        message: 'Blog post updated successfully',
-        type: 'success'
-      });
-      router.push('/admin/blogs');
-      router.refresh();
-    } catch (error) {
-      toast({
-        title: 'Error',
-        message: 'Failed to update blog post',
-        type: 'error'
-      });
-      throw error;
-    }
-  };
+  }, [isLoading, isAdmin, router, toast]);
 
   if (isLoading) {
     return (
@@ -68,6 +43,40 @@ export function BlogEditorClient({ blog }: BlogEditorClientProps) {
   if (!isAdmin) {
     return null;
   }
+
+  const handleSave = async (data: any) => {
+    try {
+      const response = await fetch(`/api/blogs/${blog.id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          ...data,
+          createdAt: blog.createdAt,
+          updatedAt: new Date().toISOString(),
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to update blog');
+      }
+
+      toast({
+        title: 'Success',
+        description: 'Blog updated successfully',
+      });
+
+      router.refresh();
+    } catch (error) {
+      console.error('Error updating blog:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to update blog',
+        variant: 'destructive',
+      });
+    }
+  };
 
   return <BlogEditor blog={blog} onSave={handleSave} />;
 }

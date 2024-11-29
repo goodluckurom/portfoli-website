@@ -2,13 +2,24 @@
 
 import { motion } from 'framer-motion';
 import Link from 'next/link';
-import { Blog } from '@prisma/client';
+import { Blog, User } from '@prisma/client';
 import { BlogCard } from '@/components/blog/BlogCard';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 
+interface BlogWithDetails extends Blog {
+  user: Pick<User, 'name'>;
+  _count: {
+    comments: number;
+    likes: number;
+    bookmarks: number;
+  };
+  liked?: boolean;
+  bookmarked?: boolean;
+}
+
 interface BlogSectionProps {
-  blogs: Blog[];
+  blogs: BlogWithDetails[];
   isLoading?: boolean;
 }
 

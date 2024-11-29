@@ -21,7 +21,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "@/components/toast";
 
-const experienceSchema = z.object({
+const experienceFormSchema = z.object({
   position: z.string().min(1, "Position is required"),
   company: z.string().min(1, "Company is required"),
   location: z.string().optional(),
@@ -30,11 +30,11 @@ const experienceSchema = z.object({
   endDate: z.string().optional(),
   current: z.boolean().default(false),
   description: z.string().min(1, "Description is required"),
-  technologies: z.string().transform((str) => str.split(",").map((s) => s.trim())),
+  technologies: z.array(z.string()).default([]),
   companyUrl: z.string().url().optional().or(z.literal("")),
 });
 
-type ExperienceFormValues = z.infer<typeof experienceSchema>;
+type ExperienceFormValues = z.infer<typeof experienceFormSchema>;
 
 interface ExperienceFormProps {
   experience?: Experience;
@@ -45,7 +45,7 @@ export function ExperienceForm({ experience }: ExperienceFormProps) {
   const [isLoading, setIsLoading] = useState(false);
 
   const form = useForm<ExperienceFormValues>({
-    resolver: zodResolver(experienceSchema),
+    resolver: zodResolver(experienceFormSchema),
     defaultValues: {
       position: experience?.position || "",
       company: experience?.company || "",
@@ -59,7 +59,7 @@ export function ExperienceForm({ experience }: ExperienceFormProps) {
         : "",
       current: experience?.current || false,
       description: experience?.description || "",
-      technologies: experience?.technologies.join(", ") || "",
+      technologies: experience?.technologies || [],
       companyUrl: experience?.companyUrl || "",
     },
   });
@@ -242,10 +242,39 @@ export function ExperienceForm({ experience }: ExperienceFormProps) {
             <FormItem>
               <FormLabel>Technologies</FormLabel>
               <FormControl>
-                <Input
-                  placeholder="React, TypeScript, Node.js (comma-separated)"
-                  {...field}
-                />
+                {field.value.map((technology, index) => (
+                  <div key={index} className="flex items-center space-x-2">
+                    <Input
+                      type="text"
+                      value={technology}
+                      onChange={(e) =>
+                        field.onChange(
+                          field.value.map((tech, i) =>
+                            i === index ? e.target.value : tech
+                          )
+                        )
+                      }
+                    />
+                    <button
+                      type="button"
+                      onClick={() =>
+                        field.onChange(
+                          field.value.filter((tech, i) => i !== index)
+                        )
+                      }
+                    >
+                      Remove
+                    </button>
+                  </div>
+                ))}
+                <button
+                  type="button"
+                  onClick={() =>
+                    field.onChange([...field.value, ""])
+                  }
+                >
+                  Add Technology
+                </button>
               </FormControl>
               <FormMessage />
             </FormItem>

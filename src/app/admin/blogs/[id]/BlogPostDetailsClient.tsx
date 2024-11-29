@@ -2,7 +2,7 @@
 
 import { useParams, useRouter } from "next/navigation";
 import { format } from "date-fns";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Icons } from "@/components/icons";
 import {
@@ -26,8 +26,17 @@ import {
 import { useToast } from "@/components/ui/use-toast";
 import { Blog, Comment, User } from "@prisma/client";
 
-type BlogWithComments = Blog & {
-  comments: (Comment & {
+type SerializedBlog = Omit<Blog, 'createdAt' | 'updatedAt'> & {
+  createdAt: string;
+  updatedAt: string;
+};
+
+type SerializedComment = Omit<Comment, 'createdAt'> & {
+  createdAt: string;
+};
+
+type BlogWithComments = SerializedBlog & {
+  comments: (SerializedComment & {
     user: User;
   })[];
 };
@@ -46,11 +55,7 @@ export function BlogPostDetailsClient({
   const [isLoading, setIsLoading] = useState(false);
   const [commentToDelete, setCommentToDelete] = useState<string | null>(null);
 
-  useEffect(() => {
-    fetchPost();
-  }, []);
-
-  const fetchPost = async () => {
+  const fetchPost = useCallback(async () => {
     try {
       setIsLoading(true);
       const response = await fetch(
@@ -63,12 +68,15 @@ export function BlogPostDetailsClient({
       toast({
         title: "Error",
         description: "Failed to load blog post",
-        variant: "destructive",
       });
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [params.id, toast]);
+
+  useEffect(() => {
+    fetchPost();
+  }, [fetchPost]);
 
   const handleDeleteComment = async (commentId: string) => {
     try {
@@ -100,6 +108,12 @@ export function BlogPostDetailsClient({
     setCommentToDelete(null);
   };
 
+  const formattedDate = new Date(post.createdAt).toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+  });
+
   return (
     <div className="container mx-auto py-8 space-y-8">
       {/* Back button */}
@@ -125,9 +139,13 @@ export function BlogPostDetailsClient({
                 <div>
                   <CardTitle className="text-2xl">{post.title}</CardTitle>
                   <CardDescription>
-                    Created: {format(new Date(post.createdAt), "PPP")}
+                    Published on {formattedDate}
                     {post.updatedAt !== post.createdAt && (
-                      <> · Updated: {format(new Date(post.updatedAt), "PPP")}</>
+                      <> · Updated on {new Date(post.updatedAt).toLocaleDateString('en-US', {
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric',
+                      })}</>
                     )}
                   </CardDescription>
                 </div>
@@ -169,7 +187,11 @@ export function BlogPostDetailsClient({
                               {comment.user.name || "Anonymous"}
                             </CardTitle>
                             <CardDescription className="text-xs">
-                              {format(new Date(comment.createdAt), "PPP")}
+                              {new Date(comment.createdAt).toLocaleDateString('en-US', {
+                                year: 'numeric',
+                                month: 'long',
+                                day: 'numeric',
+                              })}
                             </CardDescription>
                           </div>
                           <AlertDialog>

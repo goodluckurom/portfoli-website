@@ -3,6 +3,7 @@ import { prisma } from '@/lib/prisma';
 import { BlogEditorClient } from './BlogEditorClient';
 import { BlogPostDetailsClient } from './BlogPostDetailsClient';
 import { notFound } from 'next/navigation';
+import { Blog, Comment, User } from '@prisma/client';
 
 interface BlogPageProps {
   params: {
@@ -13,6 +14,21 @@ interface BlogPageProps {
   };
 }
 
+type SerializedBlog = Omit<Blog, 'createdAt' | 'updatedAt'> & {
+  createdAt: string;
+  updatedAt: string;
+};
+
+type SerializedComment = Omit<Comment, 'createdAt'> & {
+  createdAt: string;
+};
+
+type BlogWithComments = SerializedBlog & {
+  comments: (SerializedComment & {
+    user: User;
+  })[];
+};
+
 export async function generateMetadata({
   params,
 }: BlogPageProps): Promise<Metadata> {
@@ -22,8 +38,14 @@ export async function generateMetadata({
     },
   });
 
+  if (!blog) {
+    return {
+      title: 'Blog Not Found',
+    };
+  }
+
   return {
-    title: blog ? `${blog.title} - Admin` : 'Blog not found',
+    title: `${blog.title} | Admin`,
   };
 }
 
@@ -35,25 +57,7 @@ export default async function BlogPage({ params, searchParams }: BlogPageProps) 
     include: {
       comments: {
         include: {
-          user: {
-            select: {
-              id: true,
-              name: true,
-              email: true,
-              image: true,
-            },
-          },
-        },
-        orderBy: {
-          createdAt: 'desc',
-        },
-      },
-      user: {
-        select: {
-          id: true,
-          name: true,
-          email: true,
-          image: true,
+          user: true,
         },
       },
     },
@@ -63,17 +67,28 @@ export default async function BlogPage({ params, searchParams }: BlogPageProps) 
     notFound();
   }
 
-  // If mode is edit, show the editor, otherwise show the details view
-  if (searchParams.mode === 'edit') {
-    return (
-      <div className="container mx-auto py-10">
-        <div className="w-full">
-          <BlogEditorClient blog={blog} />
-        </div>
-      </div>
-    );
-  }
+  // Serialize the dates
+  const serializedBlog: BlogWithComments = {
+    ...blog,
+    createdAt: blog.createdAt.toISOString(),
+    updatedAt: blog.updatedAt.toISOString(),
+    comments: blog.comments.map(comment => ({
+      ...comment,
+      createdAt: comment.createdAt.toISOString(),
+    })),
+  };
 
-  // Default to showing the details view
-  return <BlogPostDetailsClient initialData={blog} />;
+  const isEditMode = searchParams.mode === 'edit';
+
+  return (
+    <div className="container mx-auto py-10">
+      {isEditMode ? (
+        <div className="w-full">
+          <BlogEditorClient blog={serializedBlog} />
+        </div>
+      ) : (
+        <BlogPostDetailsClient initialData={serializedBlog} />
+      )}
+    </div>
+  );
 }

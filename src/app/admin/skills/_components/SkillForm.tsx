@@ -27,11 +27,11 @@ import { Loader2 } from 'lucide-react';
 
 const skillSchema = z.object({
   name: z.string().min(1, 'Name is required'),
-  description: z.string().optional().nullable(),
+  description: z.string().optional().default(''),
   icon: z.string().optional().nullable(),
   level: z.number().min(0).max(100).default(0),
   proficiency: z.number().min(0).max(100).default(0),
-  category: z.string().optional().nullable(),
+  category: z.string().default(''),
 });
 
 type SkillFormData = z.infer<typeof skillSchema>;
@@ -95,159 +95,163 @@ export default function SkillForm({ skill, isEditing }: SkillFormProps) {
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-        <FormField
-          control={form.control}
-          name="name"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Name</FormLabel>
-              <FormControl>
-                <Input {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+        <Card className="p-6">
+          <div className="space-y-4">
+            <FormField
+              control={form.control}
+              name="name"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Name</FormLabel>
+                  <FormControl>
+                    <Input {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
-        <FormField
-          control={form.control}
-          name="description"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Description</FormLabel>
-              <FormControl>
-                <Textarea {...field} rows={3} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+            <FormField
+              control={form.control}
+              name="description"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Description</FormLabel>
+                  <FormControl>
+                    <Textarea {...field} value={field.value || ''} rows={3} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
-        <FormField
-          control={form.control}
-          name="icon"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Icon</FormLabel>
-              <FormControl>
-                <Card className="p-4">
-                  <div className="space-y-4">
-                    {field.value && (
-                      <div className="flex items-center gap-4">
-                        <div className="relative w-20 h-20 rounded-full overflow-hidden bg-primary-100 dark:bg-primary-800">
-                          <Image
-                            src={field.value}
-                            alt="Skill icon"
-                            fill
-                            className="object-cover"
-                          />
-                        </div>
-                        <Button
-                          type="button"
-                          variant="destructive"
-                          size="sm"
-                          onClick={() => {
-                            field.onChange('');
-                            form.setValue('icon', '');
+            <FormField
+              control={form.control}
+              name="icon"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Icon</FormLabel>
+                  <FormControl>
+                    <Card className="p-4">
+                      <div className="space-y-4">
+                        {field.value && (
+                          <div className="flex items-center gap-4">
+                            <div className="relative w-20 h-20 rounded-full overflow-hidden bg-primary-100 dark:bg-primary-800">
+                              <Image
+                                src={field.value}
+                                alt="Skill icon"
+                                fill
+                                className="object-cover"
+                              />
+                            </div>
+                            <Button
+                              type="button"
+                              variant="destructive"
+                              size="sm"
+                              onClick={() => {
+                                field.onChange('');
+                                form.setValue('icon', '');
+                              }}
+                            >
+                              <Icons name='trash' className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        )}
+                        <UploadButton
+                          endpoint="skillImageUploader"
+                          onClientUploadComplete={(res) => {
+                            if (res?.[0]?.url) {
+                              field.onChange(res[0].url);
+                              form.setValue('icon', res[0].url);
+                              toast.success('Icon uploaded successfully');
+                            }
                           }}
-                        >
-                          <Icons name='trash' className="h-4 w-4" />
-                        </Button>
+                          onUploadError={(error: Error) => {
+                            toast.error(`Failed to upload icon: ${error.message}`);
+                          }}
+                        />
                       </div>
-                    )}
-                    <UploadButton
-                      endpoint="skillImageUploader"
-                      onClientUploadComplete={(res) => {
-                        if (res?.[0]?.url) {
-                          field.onChange(res[0].url);
-                          form.setValue('icon', res[0].url);
-                          toast.success('Icon uploaded successfully');
-                        }
-                      }}
-                      onUploadError={(error: Error) => {
-                        toast.error(`Failed to upload icon: ${error.message}`);
-                      }}
+                    </Card>
+                  </FormControl>
+                  <FormDescription>
+                    Upload an icon for your skill. The icon will be displayed in a circular format.
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="level"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Level (0-100)</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="number"
+                      min={0}
+                      max={100}
+                      {...field}
+                      onChange={(e) => field.onChange(Number(e.target.value))}
                     />
-                  </div>
-                </Card>
-              </FormControl>
-              <FormDescription>
-                Upload an icon for your skill. The icon will be displayed in a circular format.
-              </FormDescription>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
-        <FormField
-          control={form.control}
-          name="level"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Level (0-100)</FormLabel>
-              <FormControl>
-                <Input
-                  type="number"
-                  min={0}
-                  max={100}
-                  {...field}
-                  onChange={(e) => field.onChange(Number(e.target.value))}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+            <FormField
+              control={form.control}
+              name="proficiency"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Proficiency (0-100)</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="number"
+                      min={0}
+                      max={100}
+                      {...field}
+                      onChange={(e) => field.onChange(Number(e.target.value))}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
-        <FormField
-          control={form.control}
-          name="proficiency"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Proficiency (0-100)</FormLabel>
-              <FormControl>
-                <Input
-                  type="number"
-                  min={0}
-                  max={100}
-                  {...field}
-                  onChange={(e) => field.onChange(Number(e.target.value))}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+            <FormField
+              control={form.control}
+              name="category"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Category</FormLabel>
+                  <FormControl>
+                    <Input {...field} value={field.value || ''} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
-        <FormField
-          control={form.control}
-          name="category"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Category</FormLabel>
-              <FormControl>
-                <Input {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <div className="flex justify-end">
-          <Button type="submit" disabled={form.formState.isSubmitting || uploading}>
-            {form.formState.isSubmitting || uploading ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                {isEditing ? 'Updating...' : 'Creating...'}
-              </>
-            ) : isEditing ? (
-              'Update Skill'
-            ) : (
-              'Create Skill'
-            )}
-          </Button>
-        </div>
+            <div className="flex justify-end">
+              <Button type="submit" disabled={form.formState.isSubmitting || uploading}>
+                {form.formState.isSubmitting || uploading ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    {isEditing ? 'Updating...' : 'Creating...'}
+                  </>
+                ) : isEditing ? (
+                  'Update Skill'
+                ) : (
+                  'Create Skill'
+                )}
+              </Button>
+            </div>
+          </div>
+        </Card>
       </form>
     </Form>
   );

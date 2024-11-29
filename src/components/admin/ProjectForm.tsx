@@ -3,17 +3,10 @@
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
+import { Project } from '@prisma/client';
 
 interface ProjectFormProps {
-  project?: {
-    id: string;
-    title: string;
-    description: string;
-    content: string;
-    thumbnail: string;
-    technologies: string[];
-    published: boolean;
-  };
+  project?: Project;
   isEditing?: boolean;
 }
 
@@ -25,9 +18,15 @@ export default function ProjectForm({ project, isEditing }: ProjectFormProps) {
     title: project?.title || '',
     description: project?.description || '',
     content: project?.content || '',
-    thumbnail: project?.thumbnail || '',
+    images: project?.images || [],
     technologies: project?.technologies?.join(', ') || '',
+    techStack: project?.techStack?.join(', ') || '',
+    github: project?.github || '',
+    link: project?.link || '',
+    status: project?.status || 'PLANNED',
+    featured: project?.featured || false,
     published: project?.published || false,
+    slug: project?.slug || '',
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -41,17 +40,25 @@ export default function ProjectForm({ project, isEditing }: ProjectFormProps) {
         .map((tech) => tech.trim())
         .filter(Boolean);
 
+      const techStack = formData.techStack
+        .split(',')
+        .map((tech) => tech.trim())
+        .filter(Boolean);
+
+      const payload = {
+        ...formData,
+        technologies,
+        techStack,
+      };
+
       const response = await fetch(
-        `/api/projects${isEditing ? `/${project?.id}` : ''}`,
+        isEditing ? `/api/projects/${project?.id}` : '/api/projects',
         {
-          method: isEditing ? 'PUT' : 'POST',
+          method: isEditing ? 'PATCH' : 'POST',
           headers: {
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify({
-            ...formData,
-            technologies,
-          }),
+          body: JSON.stringify(payload),
         }
       );
 
@@ -62,20 +69,35 @@ export default function ProjectForm({ project, isEditing }: ProjectFormProps) {
       router.push('/admin/projects');
       router.refresh();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred');
+      setError(err instanceof Error ? err.message : 'Something went wrong');
     } finally {
       setLoading(false);
     }
   };
 
   const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
+    >
   ) => {
     const { name, value, type } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: type === 'checkbox' ? (e.target as HTMLInputElement).checked : value,
-    }));
+    if (type === 'checkbox') {
+      const target = e.target as HTMLInputElement;
+      setFormData((prev) => ({
+        ...prev,
+        [name]: target.checked,
+      }));
+    } else if (name === 'images') {
+      setFormData((prev) => ({
+        ...prev,
+        images: value.split(',').map((img) => img.trim()).filter(Boolean),
+      }));
+    } else {
+      setFormData((prev) => ({
+        ...prev,
+        [name]: value,
+      }));
+    }
   };
 
   return (
@@ -147,17 +169,17 @@ export default function ProjectForm({ project, isEditing }: ProjectFormProps) {
 
       <div>
         <label
-          htmlFor="thumbnail"
+          htmlFor="images"
           className="block text-sm font-medium text-primary-900 dark:text-primary-50"
         >
-          Thumbnail URL
+          Images
         </label>
         <input
-          type="url"
-          name="thumbnail"
-          id="thumbnail"
+          type="text"
+          name="images"
+          id="images"
           required
-          value={formData.thumbnail}
+          value={formData.images.join(', ')}
           onChange={handleChange}
           className="mt-1 block w-full rounded-md border-primary-300 dark:border-primary-700 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm dark:bg-primary-800 dark:text-primary-50"
         />
@@ -181,6 +203,98 @@ export default function ProjectForm({ project, isEditing }: ProjectFormProps) {
         />
       </div>
 
+      <div>
+        <label
+          htmlFor="techStack"
+          className="block text-sm font-medium text-primary-900 dark:text-primary-50"
+        >
+          Tech Stack (comma-separated)
+        </label>
+        <input
+          type="text"
+          name="techStack"
+          id="techStack"
+          required
+          value={formData.techStack}
+          onChange={handleChange}
+          className="mt-1 block w-full rounded-md border-primary-300 dark:border-primary-700 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm dark:bg-primary-800 dark:text-primary-50"
+        />
+      </div>
+
+      <div>
+        <label
+          htmlFor="github"
+          className="block text-sm font-medium text-primary-900 dark:text-primary-50"
+        >
+          GitHub URL
+        </label>
+        <input
+          type="url"
+          name="github"
+          id="github"
+          required
+          value={formData.github}
+          onChange={handleChange}
+          className="mt-1 block w-full rounded-md border-primary-300 dark:border-primary-700 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm dark:bg-primary-800 dark:text-primary-50"
+        />
+      </div>
+
+      <div>
+        <label
+          htmlFor="link"
+          className="block text-sm font-medium text-primary-900 dark:text-primary-50"
+        >
+          Project URL
+        </label>
+        <input
+          type="url"
+          name="link"
+          id="link"
+          required
+          value={formData.link}
+          onChange={handleChange}
+          className="mt-1 block w-full rounded-md border-primary-300 dark:border-primary-700 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm dark:bg-primary-800 dark:text-primary-50"
+        />
+      </div>
+
+      <div>
+        <label
+          htmlFor="status"
+          className="block text-sm font-medium text-primary-900 dark:text-primary-50"
+        >
+          Status
+        </label>
+        <select
+          name="status"
+          id="status"
+          required
+          value={formData.status}
+          onChange={handleChange}
+          className="mt-1 block w-full rounded-md border-primary-300 dark:border-primary-700 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm dark:bg-primary-800 dark:text-primary-50"
+        >
+          <option value="PLANNED">Planned</option>
+          <option value="IN_PROGRESS">In Progress</option>
+          <option value="COMPLETED">Completed</option>
+        </select>
+      </div>
+
+      <div className="flex items-center">
+        <input
+          type="checkbox"
+          name="featured"
+          id="featured"
+          checked={formData.featured}
+          onChange={handleChange}
+          className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-primary-300 dark:border-primary-700 rounded"
+        />
+        <label
+          htmlFor="featured"
+          className="ml-2 block text-sm text-primary-900 dark:text-primary-50"
+        >
+          Featured
+        </label>
+      </div>
+
       <div className="flex items-center">
         <input
           type="checkbox"
@@ -196,6 +310,24 @@ export default function ProjectForm({ project, isEditing }: ProjectFormProps) {
         >
           Published
         </label>
+      </div>
+
+      <div>
+        <label
+          htmlFor="slug"
+          className="block text-sm font-medium text-primary-900 dark:text-primary-50"
+        >
+          Slug
+        </label>
+        <input
+          type="text"
+          name="slug"
+          id="slug"
+          required
+          value={formData.slug}
+          onChange={handleChange}
+          className="mt-1 block w-full rounded-md border-primary-300 dark:border-primary-700 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm dark:bg-primary-800 dark:text-primary-50"
+        />
       </div>
 
       <div className="flex justify-end space-x-4">

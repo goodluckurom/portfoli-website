@@ -52,7 +52,10 @@ import {
   Link,
   BookmarkMinus,
   LogIn,
-  Map
+  Map,
+  UploadCloud,
+  Image,
+  Users
 } from "lucide-react";
 
 const icons = {
@@ -105,7 +108,10 @@ const icons = {
   link: Link,
   bookmarkminus: BookmarkMinus,
   login: LogIn,
-  mapPin:Map
+  mapPin: Map,
+  image: Image,
+  upload: UploadCloud,
+  users:Users
 } as const;
 
 export type IconName = keyof typeof icons;

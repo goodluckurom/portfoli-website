@@ -4,7 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { getSession } from "@/lib/auth";
 import { BlogPostClient } from "./BlogPostClient";
 import { UserProfileSection } from "@/components/blog/UserProfileSection";
-import { serializeMDX } from '@/lib/mdx';
+import { serialize } from 'next-mdx-remote/serialize';
 
 interface BlogPostPageProps {
   params: {
@@ -27,7 +27,7 @@ export async function generateMetadata({
 
   return {
     title: blog.title,
-    description: blog.description,
+    description: blog.metaDescription,
   };
 }
 
@@ -89,13 +89,42 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
     notFound();
   }
 
-  const content = await serializeMDX(blog.content);
+  // Serialize the MDX content
+  const serializedContent = await serialize(blog.content);
+
+  // Get user interactions if logged in
+  let liked = false;
+  let bookmarked = false;
+
+  if (session) {
+    const [likeData, bookmarkData] = await Promise.all([
+      prisma.like.findUnique({
+        where: {
+          userId_blogId: {
+            userId: session.id,
+            blogId: blog.id,
+          },
+        },
+      }),
+      prisma.bookmark.findUnique({
+        where: {
+          userId_blogId: {
+            userId: session.id,
+            blogId: blog.id,
+          },
+        },
+      }),
+    ]);
+
+    liked = !!likeData;
+    bookmarked = !!bookmarkData;
+  }
 
   const blogWithInteractions = {
     ...blog,
-    content,
-    liked: session ? blog.likes?.length > 0 : false,
-    bookmarked: session ? blog.bookmarks?.length > 0 : false,
+    content: serializedContent,
+    liked,
+    bookmarked,
     likes: undefined,
     bookmarks: undefined,
   };

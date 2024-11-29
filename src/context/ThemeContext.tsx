@@ -25,16 +25,21 @@ const applyTheme = (theme: Theme) => {
   if (typeof window === 'undefined') return;
   
   const root = document.documentElement;
+  const colorMode = root.classList.contains('dark') ? 'dark' : 'light';
+  const colors = theme.colors[colorMode];
 
-  // Apply colors
-  Object.entries(theme.settings.colors.primary).forEach(([key, value]) => {
+  // Apply primary colors
+  Object.entries(colors.primary).forEach(([key, value]) => {
     root.style.setProperty(`--primary-${key}`, value);
   });
 
   // Apply background colors
-  Object.entries(theme.settings.colors.background).forEach(([key, value]) => {
-    root.style.setProperty(`--background-${key}`, value);
-  });
+  root.style.setProperty('--background-main', colors.background.main);
+  root.style.setProperty('--background-alt', colors.background.alt);
+
+  // Apply text colors
+  root.style.setProperty('--text-primary', colors.text.primary);
+  root.style.setProperty('--text-secondary', colors.text.secondary);
 
   // Apply spacing
   Object.entries(theme.settings.spacing).forEach(([key, value]) => {

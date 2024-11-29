@@ -86,7 +86,7 @@ model Skill {
   icon        String?
   level       Int      @default(0)
   proficiency Int      @default(0)
-  category    String?
+  category    String   @default("")
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 }

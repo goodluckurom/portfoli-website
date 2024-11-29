@@ -1,12 +1,27 @@
 import { NextResponse } from 'next/server';
-import { getSession } from '@/lib/auth';
+import { cookies } from 'next/headers';
+import { decrypt } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 
 export async function GET() {
   try {
-    const session = await getSession();
+    // Get session cookie
+    const cookieStore = cookies();
+    const sessionCookie = cookieStore.get('session');
     
-    if (!session) {
+    console.log('Session cookie in API:', sessionCookie);
+
+    if (!sessionCookie?.value) {
+      console.log('No session cookie found');
+      return NextResponse.json({ user: null });
+    }
+
+    // Decrypt session token
+    const session = await decrypt(sessionCookie.value);
+    console.log('Decrypted session:', session);
+
+    if (!session?.email) {
+      console.log('Invalid session data');
       return NextResponse.json({ user: null });
     }
 
@@ -25,12 +40,14 @@ export async function GET() {
     });
 
     if (!user) {
+      console.log('No user found for session:', session);
       return NextResponse.json({ user: null });
     }
 
+    console.log('User found:', user);
     return NextResponse.json({ user });
   } catch (error) {
-    console.error('[AUTH_SESSION]', error);
-    return new NextResponse('Internal Error', { status: 500 });
+    console.error('Session error:', error);
+    return NextResponse.json({ user: null });
   }
 }

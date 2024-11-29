@@ -1,12 +1,18 @@
 import { notFound } from 'next/navigation';
 import { prisma } from '@/lib/prisma';
 import { BlogEditorClient } from './BlogEditorClient';
+import { Blog } from '@prisma/client';
 
 interface PageProps {
   params: {
     id: string;
   };
 }
+
+type SerializedBlog = Omit<Blog, 'createdAt' | 'updatedAt'> & {
+  createdAt: string;
+  updatedAt: string;
+};
 
 export default async function EditBlogPage({ params }: PageProps) {
   if (!params.id) {
@@ -22,7 +28,7 @@ export default async function EditBlogPage({ params }: PageProps) {
   }
 
   // Ensure dates are serialized properly
-  const serializedBlog = {
+  const serializedBlog: SerializedBlog = {
     ...blog,
     createdAt: blog.createdAt.toISOString(),
     updatedAt: blog.updatedAt.toISOString(),

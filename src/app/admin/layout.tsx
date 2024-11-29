@@ -1,6 +1,6 @@
 'use client';
 
-import AdminHeader from '@/components/admin/AdminHeader';
+import { AdminHeader } from '@/components/admin/AdminHeader';
 import AdminSidebar from '@/components/admin/AdminSidebar';
 import { FloatingBall } from '@/components/FloatingBall';
 import { motion } from 'framer-motion';

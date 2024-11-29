@@ -24,13 +24,26 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { FloatingBall } from "@/components/FloatingBall";
 import { SocialLinks } from "@/components/social-links";
 
+interface BlogWithCounts extends Blog {
+  user: {
+    name: string | null;
+  };
+  _count: {
+    comments: number;
+    likes: number;
+    bookmarks: number;
+  };
+  liked: boolean;
+  bookmarked: boolean;
+}
+
 interface HomeClientProps {
   initialData: {
-    user: User & { socialLinks: SocialLink[] };
+    user: (User & { socialLinks: SocialLink[] }) | null;
     experiences: Experience[];
     skills: any[];
     projects: Project[];
-    blogs: Blog[];
+    blogs: BlogWithCounts[];
   };
 }
 

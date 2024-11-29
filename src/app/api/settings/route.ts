@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSession } from "@/lib/auth";
-import {prisma} from "@/lib/prisma";
+import { prisma } from "@/lib/prisma";
 import { z } from "zod";
+import { socialPlatformData } from "@/lib/social-icons";
 
 // Schema for validating the request body
 const settingsSchema = z.object({
@@ -58,6 +59,8 @@ export async function GET() {
             id: true,
             platform: true,
             url: true,
+            name: true,
+            icon: true,
           },
         },
       },
@@ -108,6 +111,8 @@ export async function PATCH(req: NextRequest) {
             create: validatedData.socialLinks.map(link => ({
               platform: link.platform,
               url: link.url,
+              name: socialPlatformData[link.platform].name,
+              icon: socialPlatformData[link.platform].icon,
             })),
           } : undefined,
         },

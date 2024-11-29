@@ -24,9 +24,9 @@ const getNavItems = (isAdmin: boolean) => {
 
 export default function Navbar() {
   const { currentTheme, setTheme, isDark, toggleDark, themes } = useThemeContext();
-  const { user, isLoading } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
   const [isThemeMenuOpen, setIsThemeMenuOpen] = useState(false);
+  const [userROle, setUserROle] = useState<string | null>(null);
   const [mounted, setMounted] = useState(false);
   const pathname = usePathname();
 
@@ -34,11 +34,36 @@ export default function Navbar() {
     setMounted(true);
   }, []);
 
-  if (!mounted || isLoading) {
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const response = await fetch('/api/auth/user', {
+          credentials: 'include',  
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        });
+
+        if (!response.ok) {
+          console.error('Failed to fetch user:', response.status, response.statusText);
+          return;
+        }
+
+        const data = await response.json();
+        console.log('User data received:', data); 
+        setUserROle(data.user?.role || null);
+      } catch (error) {
+        console.error('Error fetching user:', error);
+      }
+    };
+
+    fetchUser();
+  }, []);
+
+  if (!mounted ) {
     return null;
   }
-  const navItems = getNavItems(user?.role === 'ADMIN');
-
+  const navItems = getNavItems(userROle === 'ADMIN');
   return (
     <nav className="sticky top-0 z-50 bg-background-main/80 backdrop-blur-lg border-b border-primary-200 dark:border-primary-800">
       <div className="container mx-auto px-4">

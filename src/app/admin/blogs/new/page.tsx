@@ -1,5 +1,5 @@
 import { Metadata } from 'next';
-import { NewBlogClient } from './NewBlogClient';
+import NewBlogClient  from './NewBlogClient';
 
 export const metadata: Metadata = {
   title: 'New Blog Post',

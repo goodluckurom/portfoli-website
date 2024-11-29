@@ -89,6 +89,24 @@ export async function GET(request: Request) {
   }
 }
 
+  // Function to generate a unique slug
+    async function generateUniqueSlug(baseSlug: string, attempt: number = 0): Promise<string> {
+      const slug = attempt === 0 ? baseSlug : `${baseSlug}-${attempt}`;
+      
+      // Check if slug exists
+      const exists = await prisma.blog.findUnique({
+        where: { slug },
+        select: { slug: true }
+      });
+
+      if (exists) {
+        // If slug exists, try with next number
+        return generateUniqueSlug(baseSlug, attempt + 1);
+      }
+
+      return slug;
+    }
+
 // POST /api/blogs - Create a new blog
 export async function POST(request: Request) {
   try {
@@ -114,11 +132,15 @@ export async function POST(request: Request) {
       featured,
     } = body;
 
-    // Generate slug from title
-    const slug = title
+    // Generate base slug from title
+    let baseSlug = title
       .toLowerCase()
       .replace(/[^a-zA-Z0-9\s]/g, '')
       .replace(/\s+/g, '-');
+
+  
+    // Get a unique slug
+    const slug = await generateUniqueSlug(baseSlug);
 
     // Calculate reading time (rough estimate: 200 words per minute)
     const wordCount = content.trim().split(/\s+/).length;

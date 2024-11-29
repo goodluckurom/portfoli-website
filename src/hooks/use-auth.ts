@@ -2,7 +2,6 @@
 
 import { create } from "zustand";
 import { User } from "@prisma/client";
-import { useEffect } from "react";
 
 interface AuthState {
   user: User | null;
@@ -14,83 +13,102 @@ interface AuthState {
   checkAuth: () => Promise<void>;
 }
 
-export const useAuth = create<AuthState>((set) => {
-  // Check auth status on initialization
-  const checkAuth = async () => {
+export const useAuth = create<AuthState>((set) => ({
+  user: null,
+  isLoading: false,
+  error: null,
+
+  setUser: (user) => set({ user }),
+
+  checkAuth: async () => {
     try {
-      const response = await fetch("/api/auth/session");
+      set({ isLoading: true, error: null });
+      const response = await fetch('/api/auth/session', {
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+
       if (!response.ok) {
-        set({ user: null, isLoading: false });
-        return;
+        throw new Error('Failed to fetch session');
       }
 
       const data = await response.json();
-      if (data.user) {
-        set({ user: data.user, isLoading: false });
-      } else {
-        set({ user: null, isLoading: false });
-      }
+      set({ 
+        user: data.user, 
+        isLoading: false,
+        error: null
+      });
     } catch (error) {
       console.error("Error checking auth:", error);
-      set({ user: null, isLoading: false });
+      set({ 
+        user: null, 
+        isLoading: false,
+        error: error instanceof Error ? error.message : "Failed to check auth"
+      });
     }
-  };
+  },
 
-  // Call checkAuth immediately
-  checkAuth();
+  login: async (email, password) => {
+    try {
+      set({ isLoading: true, error: null });
+      const response = await fetch('/api/auth/login', {
+        method: "POST",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email, password }),
+      });
 
-  return {
-    user: null,
-    isLoading: true,
-    error: null,
-
-    setUser: (user) => set({ user }),
-
-    login: async (email: string, password: string) => {
-      try {
-        set({ isLoading: true, error: null });
-        const response = await fetch("/api/auth/login", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email, password }),
-        });
-
-        if (!response.ok) {
-          const error = await response.json();
-          throw new Error(error.message || "Failed to login");
-        }
-
-        const data = await response.json();
-        set({ user: data.user, isLoading: false });
-      } catch (error) {
-        set({
-          error: error instanceof Error ? error.message : "Failed to login",
-          isLoading: false,
-        });
+      if (!response.ok) {
+        throw new Error('Invalid credentials');
       }
-    },
 
-    logout: async () => {
-      try {
-        set({ isLoading: true, error: null });
-        const response = await fetch("/api/auth/logout", {
-          method: "POST",
-        });
+      const data = await response.json();
+      set({ 
+        user: data.user,
+        isLoading: false,
+        error: null
+      });
+    } catch (error) {
+      console.error("Login error:", error);
+      set({ 
+        isLoading: false,
+        error: error instanceof Error ? error.message : "Failed to login"
+      });
+      throw error;
+    }
+  },
 
-        if (!response.ok) {
-          const error = await response.json();
-          throw new Error(error.message || "Failed to logout");
-        }
+  logout: async () => {
+    try {
+      set({ isLoading: true, error: null });
+      const response = await fetch('/api/auth/logout', {
+        method: "POST",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
 
-        set({ user: null, isLoading: false });
-      } catch (error) {
-        set({
-          error: error instanceof Error ? error.message : "Failed to logout",
-          isLoading: false,
-        });
+      if (!response.ok) {
+        throw new Error('Failed to logout');
       }
-    },
 
-    checkAuth,
-  };
-});
+      set({ 
+        user: null,
+        isLoading: false,
+        error: null
+      });
+    } catch (error) {
+      console.error("Logout error:", error);
+      set({ 
+        isLoading: false,
+        error: error instanceof Error ? error.message : "Failed to logout"
+      });
+      throw error;
+    }
+  },
+}));
