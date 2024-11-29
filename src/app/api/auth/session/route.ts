@@ -1,9 +1,12 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from "next/server";
+import { getSession } from "@/lib/auth";
 import { cookies } from 'next/headers';
 import { decrypt } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 
-export async function GET() {
+export const dynamic = 'force-dynamic';
+
+export async function GET(req: NextRequest) {
   try {
     // Get session cookie
     const cookieStore = cookies();

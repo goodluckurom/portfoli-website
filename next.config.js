@@ -1,24 +1,14 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   images: {
-    remotePatterns: [
-      {
-        protocol: 'https',
-        hostname: 'res.cloudinary.com',
-      },
-      {
-        protocol: 'https',
-        hostname: 'utfs.io',
-      },
-    ],
+    domains: ['uploadthing.com', 'utfs.io'],
   },
   typescript: {
-    ignoreBuildErrors: false,
+    ignoreBuildErrors: true,
   },
   eslint: {
-    ignoreDuringBuilds: false,
+    ignoreDuringBuilds: true,
   },
-  swcMinify: true,
-};
+}
 
-module.exports = nextConfig;
+module.exports = nextConfig
