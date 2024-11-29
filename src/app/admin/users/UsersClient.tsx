@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import Image from 'next/image';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -53,7 +53,7 @@ export default function UsersClient() {
   const [totalPages, setTotalPages] = useState(1);
   const { toast } = useToast();
 
-  const fetchUsers = async () => {
+  const fetchUsers = useCallback(async () => {
     try {
       setLoading(true);
       const searchParams = new URLSearchParams({
@@ -77,11 +77,11 @@ export default function UsersClient() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [page, search, toast]);
 
   useEffect(() => {
     fetchUsers();
-  }, [page, search]);
+  }, [page, search, fetchUsers]);
 
   const handleDelete = async (userId: string) => {
     try {
