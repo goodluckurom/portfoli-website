@@ -7,6 +7,7 @@ import { usePathname } from 'next/navigation';
 import { Moon, Sun, Palette } from 'lucide-react';
 import { useAuth } from '@/hooks/use-auth';
 import { Badge } from '@/components/ui/badge';
+import Image from 'next/image';
 
 const getNavItems = (isAdmin: boolean) => {
   const items = [
@@ -50,7 +51,6 @@ export default function Navbar() {
         }
 
         const data = await response.json();
-        console.log('User data received:', data); 
         setUserROle(data.user?.role || null);
       } catch (error) {
         console.error('Error fetching user:', error);
@@ -75,7 +75,13 @@ export default function Navbar() {
               whileTap={{ scale: 0.95 }}
               className="text-2xl font-bold text-primary-900 dark:text-primary-50"
             >
-              Goodluck Urom
+              {/* Goodluck Urom */}
+              <Image
+                src={'/icon-512.png'}
+                width={40}
+                height={40}
+                alt='Goodluck Urom'
+              />
             </motion.div>
           </Link>
 

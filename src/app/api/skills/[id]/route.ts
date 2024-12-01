@@ -2,6 +2,9 @@ import { NextResponse } from 'next/server';
 import { getSession } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { z } from 'zod';
+import { getDynamicConfig } from '@/lib/dynamic';
+
+export const dynamic = getDynamicConfig('/api/skills/[id]');
 
 const skillSchema = z.object({
   name: z.string().min(1, 'Name is required'),
@@ -44,7 +47,7 @@ export async function PUT(
 ) {
   try {
     const session = await getSession();
-    if (!session) {
+    if (!session || session?.role!=='ADMIN') {
       return NextResponse.json(
         { error: 'Unauthorized' },
         { status: 401 }
@@ -89,7 +92,7 @@ export async function DELETE(
 ) {
   try {
     const session = await getSession();
-    if (!session) {
+    if (!session || session?.role!=='ADMIN') {
       return NextResponse.json(
         { error: 'Unauthorized' },
         { status: 401 }

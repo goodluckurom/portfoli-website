@@ -1,8 +1,11 @@
 import { createUploadthing, type FileRouter } from "uploadthing/next";
 import { getSession, isAdmin } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { getDynamicConfig } from '@/lib/dynamic';
 
 const f = createUploadthing();
+
+export const dynamic = getDynamicConfig('/api/uploadthing');
 
 export const ourFileRouter = {
   profileImageUploader: f({ image: { maxFileSize: "4MB" } })

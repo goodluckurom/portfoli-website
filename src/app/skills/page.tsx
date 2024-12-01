@@ -1,6 +1,9 @@
 import React from 'react';
 import { prisma } from '@/lib/prisma';
+import { getDynamicConfig } from '@/lib/dynamic';
 import SkillsPageClient from './SkillsPageClient';
+
+export const dynamic = getDynamicConfig('/skills');
 
 async function getSkills() {
   const skills = await prisma.skill.findMany({

@@ -3,11 +3,14 @@ import { getSession } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { ExperienceForm } from "../../_components/ExperienceForm";
+import { getDynamicConfig } from '@/lib/dynamic';
 
 export const metadata: Metadata = {
   title: "Edit Experience",
   description: "Edit work experience",
 };
+
+export const dynamic = getDynamicConfig('/admin/experience/[id]/edit');
 
 interface PageProps {
   params: {
@@ -16,12 +19,12 @@ interface PageProps {
 }
 
 export default async function EditExperiencePage({ params }: PageProps) {
+ // Server-side authentication check
   const session = await getSession();
-
-  if (!session?.email || session.email !== process.env.ADMIN_EMAIL) {
+  
+  if (!session || session?.role!=='ADMIN') {
     redirect("/");
   }
-
   const experience = await prisma.experience.findUnique({
     where: { id: params.id },
   });

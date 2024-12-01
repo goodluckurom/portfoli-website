@@ -2,6 +2,11 @@ import React from 'react';
 import Link from 'next/link';
 import { prisma } from '@/lib/prisma';
 import { SkillListClient } from './SkillListClient';
+import { getSession } from '@/lib/auth';
+import { redirect } from 'next/navigation';
+import { getDynamicConfig } from '@/lib/dynamic';
+
+export const dynamic = getDynamicConfig('/admin/skills');
 
 async function getSkills() {
   const skills = await prisma.skill.findMany({
@@ -14,6 +19,12 @@ async function getSkills() {
 }
 
 export default async function AdminSkillsPage() {
+  // Server-side authentication check
+  const session = await getSession();
+  
+  if (!session || session?.role!=='ADMIN') {
+    redirect("/");
+  }
   const skills = await getSkills();
 
   return (

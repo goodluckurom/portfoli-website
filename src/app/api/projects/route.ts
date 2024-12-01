@@ -1,5 +1,9 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { getSession } from '@/lib/auth';
+import { getDynamicConfig } from '@/lib/dynamic';
+
+export const dynamic = getDynamicConfig('/api/projects');
 
 export async function GET(request: Request) {
   try {
@@ -56,6 +60,12 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
+  // Server-side authentication check
+  const session = await getSession();
+  
+  if (!session || session?.role!=='ADMIN') {
+    return new NextResponse('Unauthorized', { status: 401 });
+  }
   try {
     const json = await request.json();
 

@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { getSession } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { z } from 'zod';
+import { getDynamicConfig } from '@/lib/dynamic';
 
 const skillSchema = z.object({
   name: z.string().min(1, 'Name is required'),
@@ -11,6 +12,8 @@ const skillSchema = z.object({
   proficiency: z.number().min(0).max(100).default(0),
   category: z.string().default(''),
 });
+
+export const dynamic = getDynamicConfig('/api/skills');
 
 export async function GET() {
   try {
@@ -33,7 +36,7 @@ export async function GET() {
 export async function POST(request: Request) {
   try {
     const session = await getSession();
-    if (!session) {
+    if (!session || session?.role!=='ADMIN') {
       return NextResponse.json(
         { error: 'Unauthorized' },
         { status: 401 }

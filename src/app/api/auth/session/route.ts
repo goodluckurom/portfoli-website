@@ -3,8 +3,9 @@ import { getSession } from "@/lib/auth";
 import { cookies } from 'next/headers';
 import { decrypt } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
+import { getDynamicConfig } from '@/lib/dynamic';
 
-export const dynamic = 'force-dynamic';
+export const dynamic = getDynamicConfig('/api/auth/session');
 
 export async function GET(req: NextRequest) {
   try {
@@ -12,19 +13,15 @@ export async function GET(req: NextRequest) {
     const cookieStore = cookies();
     const sessionCookie = cookieStore.get('session');
     
-    console.log('Session cookie in API:', sessionCookie);
 
     if (!sessionCookie?.value) {
-      console.log('No session cookie found');
       return NextResponse.json({ user: null });
     }
 
     // Decrypt session token
     const session = await decrypt(sessionCookie.value);
-    console.log('Decrypted session:', session);
 
     if (!session?.email) {
-      console.log('Invalid session data');
       return NextResponse.json({ user: null });
     }
 
@@ -43,11 +40,9 @@ export async function GET(req: NextRequest) {
     });
 
     if (!user) {
-      console.log('No user found for session:', session);
       return NextResponse.json({ user: null });
     }
 
-    console.log('User found:', user);
     return NextResponse.json({ user });
   } catch (error) {
     console.error('Session error:', error);

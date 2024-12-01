@@ -6,6 +6,9 @@ import { Project } from '@prisma/client';
 import { ProjectEditor } from '@/components/admin/project/ProjectEditor';
 import { toast } from '@/components/toast';
 import { ProjectFormValues } from '@/types/project';
+import { getDynamicConfig } from '@/lib/dynamic';
+
+export const dynamic = getDynamicConfig('/admin/projects/[id]');
 
 interface EditProjectPageProps {
   params: {

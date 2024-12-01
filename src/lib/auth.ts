@@ -46,6 +46,16 @@ export async function getSession(request?: NextRequest): Promise<Session> {
     if (!token) return null;
 
     const payload = await decrypt(token);
+    if (!payload || !payload.role) return null;  // Ensure role exists
+
+    // Verify user still exists and role matches
+    const user = await prisma.user.findUnique({
+      where: { email: payload.email },
+      select: { role: true }
+    });
+
+    if (!user || user.role !== payload.role) return null;
+
     return payload as Session;
   } catch (error) {
     console.error('Session error:', error);

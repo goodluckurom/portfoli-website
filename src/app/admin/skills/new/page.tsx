@@ -1,7 +1,15 @@
 import React from 'react';
 import SkillForm from '../_components/SkillForm';
+import { getSession } from '@/lib/auth';
+import { redirect } from 'next/navigation';
 
-export default function NewSkillPage() {
+export default async function NewSkillPage() {
+  // Server-side authentication check
+  const session = await getSession();
+  
+  if (!session || session?.role!=='ADMIN') {
+    redirect("/");
+  }
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">

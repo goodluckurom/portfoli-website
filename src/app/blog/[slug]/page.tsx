@@ -5,6 +5,9 @@ import { getSession } from "@/lib/auth";
 import { BlogPostClient } from "./BlogPostClient";
 import { UserProfileSection } from "@/components/blog/UserProfileSection";
 import { serialize } from 'next-mdx-remote/serialize';
+import { getDynamicConfig } from '@/lib/dynamic';
+
+export const dynamic = getDynamicConfig('/blog/[slug]');
 
 interface BlogPostPageProps {
   params: {
@@ -31,7 +34,7 @@ export async function generateMetadata({
   };
 }
 
-export default async function BlogPostPage({ params }: BlogPostPageProps) {
+export default async function BlogPost({ params }: { params: { slug: string } }) {
   const session = await getSession();
   const isAdmin = session?.role === "ADMIN";
 

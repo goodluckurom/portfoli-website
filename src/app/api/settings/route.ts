@@ -3,6 +3,9 @@ import { getSession } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { z } from "zod";
 import { socialPlatformData } from "@/lib/social-icons";
+import { getDynamicConfig } from '@/lib/dynamic';
+
+export const dynamic = getDynamicConfig('/api/settings');
 
 // Schema for validating the request body
 const settingsSchema = z.object({

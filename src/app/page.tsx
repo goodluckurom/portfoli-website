@@ -1,6 +1,5 @@
-"use server";
-
 import { prisma } from "@/lib/prisma";
+import { getDynamicConfig } from '@/lib/dynamic';
 import { HomeClient } from "@/components/home/HomeClient";
 import { Blog, Experience, Project, Skill, SocialLink, User } from "@prisma/client";
 
@@ -16,6 +15,8 @@ interface BlogWithCounts extends Blog {
   liked: boolean;
   bookmarked: boolean;
 }
+
+export const dynamic = getDynamicConfig('/');
 
 async function getData() {
   // Fetch featured projects
@@ -53,16 +54,18 @@ async function getData() {
       createdAt: "desc",
     },
     take: 3,
-  });
+  }) as BlogWithCounts[];
 
-  // Fetch user data
-  const user = await prisma.user.findFirst({
-    where: {
-      role: "ADMIN",
-    },
-    include: {
-      socialLinks: true,
-    },
+  // Fetch skills
+  const skills = await prisma.skill.findMany({
+    orderBy: [
+      {
+        category: "asc",
+      },
+      {
+        proficiency: "desc",
+      },
+    ],
   });
 
   // Fetch experiences
@@ -72,14 +75,14 @@ async function getData() {
     },
   });
 
-  // Fetch skills
-  const skills = await prisma.skill.findMany({
-    orderBy: {
-      category: "asc",
+  // Fetch user info
+  const user = await prisma.user.findFirst({
+    include: {
+      socialLinks: true,
     },
   });
 
-  const data = {
+  return {
     user,
     experiences,
     skills,
@@ -89,15 +92,7 @@ async function getData() {
       liked: false,
       bookmarked: false,
     })),
-  } satisfies {
-    user: (User & { socialLinks: SocialLink[] }) | null;
-    experiences: Experience[];
-    skills: Skill[];
-    projects: Project[];
-    blogs: BlogWithCounts[];
   };
-
-  return data;
 }
 
 export default async function HomePage() {

@@ -1,7 +1,8 @@
 import React from 'react';
-import { notFound } from 'next/navigation';
+import { notFound, redirect } from 'next/navigation';
 import { prisma } from '@/lib/prisma';
 import ProjectForm from '@/components/admin/ProjectForm';
+import { getSession } from '@/lib/auth';
 
 interface EditProjectPageProps {
   params: {
@@ -17,6 +18,13 @@ async function getProject(id: string) {
 }
 
 export default async function EditProjectPage({ params }: EditProjectPageProps) {
+  
+   // Server-side authentication check
+  const session = await getSession();
+  
+  if (!session || session?.role!=='ADMIN') {
+    redirect("/");
+  }
   const project = await getProject(params.id);
 
   if (!project) {

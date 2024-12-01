@@ -1,7 +1,11 @@
 import React from 'react';
-import { notFound } from 'next/navigation';
+import { notFound, redirect } from 'next/navigation';
 import { prisma } from '@/lib/prisma';
 import SkillForm from '../../_components/SkillForm';
+import { getSession } from '@/lib/auth';
+import { getDynamicConfig } from '@/lib/dynamic';
+
+export const dynamic = getDynamicConfig('/admin/skills/[id]/edit');
 
 async function getSkill(id: string) {
   const skill = await prisma.skill.findUnique({
@@ -17,6 +21,12 @@ export default async function EditSkillPage({
 }: {
   params: { id: string };
 }) {
+  // Server-side authentication check
+  const session = await getSession();
+  
+  if (!session || session?.role!=='ADMIN') {
+    redirect("/");
+  }
   const skill = await getSkill(params.id);
 
   return (

@@ -2,6 +2,11 @@ import React from 'react';
 import Link from 'next/link';
 import { prisma } from '@/lib/prisma';
 import { BlogListClient } from './BlogListClient';
+import { getSession } from "@/lib/auth";
+import { redirect } from "next/navigation";
+import { getDynamicConfig } from '@/lib/dynamic';
+
+export const dynamic = getDynamicConfig('/admin/blogs');
 
 async function getBlogPosts() {
   const posts = await prisma.blog.findMany({
@@ -13,6 +18,13 @@ async function getBlogPosts() {
 }
 
 export default async function AdminBlogsPage() {
+  // Server-side authentication check
+  const session = await getSession();
+  
+  if (!session || session?.role !== 'ADMIN') {
+    redirect("/");
+  }
+
   const posts = await getBlogPosts();
 
   return (  
@@ -28,7 +40,6 @@ export default async function AdminBlogsPage() {
           New Post
         </Link>
       </div>
-
       <BlogListClient posts={posts} />
     </div>
   );

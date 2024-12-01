@@ -2,11 +2,14 @@ import { Metadata } from 'next';
 import { BlogPageClient } from './BlogPageClient';
 import { prisma } from '@/lib/prisma';
 import { getSession } from '@/lib/auth';
+import { getDynamicConfig } from '@/lib/dynamic';
 
 export const metadata: Metadata = {
   title: 'Blog',
   description: 'Read my thoughts on software development, design, and more.',
 };
+
+export const dynamic = getDynamicConfig('/blog');
 
 export default async function BlogPage({
   searchParams,

@@ -2,6 +2,9 @@ import { redirect } from 'next/navigation';
 import { getSession } from '@/lib/auth';
 import { RegisterClient } from './RegisterClient';
 import { Icons } from '@/components/icons';
+import { getDynamicConfig } from '@/lib/dynamic';
+
+export const dynamic = getDynamicConfig('/auth/register');
 
 export default async function RegisterPage() {
   const session = await getSession();

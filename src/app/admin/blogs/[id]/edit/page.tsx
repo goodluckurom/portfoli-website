@@ -1,7 +1,8 @@
-import { notFound } from 'next/navigation';
+import { notFound, redirect } from 'next/navigation';
 import { prisma } from '@/lib/prisma';
 import { BlogEditorClient } from './BlogEditorClient';
 import { Blog } from '@prisma/client';
+import { getSession } from '@/lib/auth';
 
 interface PageProps {
   params: {
@@ -15,6 +16,12 @@ type SerializedBlog = Omit<Blog, 'createdAt' | 'updatedAt'> & {
 };
 
 export default async function EditBlogPage({ params }: PageProps) {
+  // Server-side authentication check
+  const session = await getSession();
+  
+  if (!session || session?.role!=='ADMIN') {
+    redirect("/");
+  }
   if (!params.id) {
     notFound();
   }

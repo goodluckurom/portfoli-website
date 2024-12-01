@@ -1,14 +1,18 @@
 import React from 'react';
 import SettingsForm from './SettingsForm';
 import { redirect } from 'next/navigation';
-import { getSession, isAdmin } from '@/lib/auth';
+import { getSession } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
+import { getDynamicConfig } from '@/lib/dynamic';
+
+export const dynamic = getDynamicConfig('/admin/settings');
 
 async function getUserSettings() {
+// Server-side authentication check
   const session = await getSession();
-
-  if (!session || !isAdmin(session)) {
-    redirect('/auth/login');
+  
+  if (!session || session?.role!=='ADMIN') {
+    redirect("/");
   }
 
   const user = await prisma.user.findUnique({

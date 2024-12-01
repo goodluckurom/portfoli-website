@@ -2,8 +2,12 @@ import { Metadata } from 'next';
 import { prisma } from '@/lib/prisma';
 import { BlogEditorClient } from './BlogEditorClient';
 import { BlogPostDetailsClient } from './BlogPostDetailsClient';
-import { notFound } from 'next/navigation';
+import { notFound, redirect } from 'next/navigation';
 import { Blog, Comment, User } from '@prisma/client';
+import { getSession } from '@/lib/auth';
+import { getDynamicConfig } from '@/lib/dynamic';
+
+export const dynamic = getDynamicConfig('/admin/blogs/[id]');
 
 interface BlogPageProps {
   params: {
@@ -50,6 +54,13 @@ export async function generateMetadata({
 }
 
 export default async function BlogPage({ params, searchParams }: BlogPageProps) {
+  
+   // Server-side authentication check
+  const session = await getSession();
+  
+  if (!session || session?.role!=='ADMIN') {
+    redirect("/");
+  }
   const blog = await prisma.blog.findUnique({
     where: {
       id: params.id,

@@ -1,13 +1,16 @@
 import { Metadata } from "next";
 import { prisma } from "@/lib/prisma";
-import {ExperienceClient} from "./ExperienceClient";
+import { ExperienceClient } from "./ExperienceClient";
 import { getSession } from "@/lib/auth";
 import { redirect } from "next/navigation";
+import { getDynamicConfig } from '@/lib/dynamic';
 
 export const metadata: Metadata = {
   title: "Experience Management",
   description: "Manage your work experience",
 };
+
+export const dynamic = getDynamicConfig('/admin/experience');
 
 export default async function ExperiencePage() {
   const session = await getSession();

@@ -1,5 +1,8 @@
 import { getSession } from '@/lib/auth';
+import { getDynamicConfig } from '@/lib/dynamic';
 import { NextRequest, NextResponse } from 'next/server';
+
+export const dynamic = getDynamicConfig('/api/auth/user');
 
 export async function GET(request: NextRequest) {
   try {

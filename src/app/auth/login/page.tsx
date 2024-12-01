@@ -13,6 +13,10 @@ import { redirect } from 'next/navigation';
 import { getSession } from '@/lib/auth';
 import { LoginClient } from './LoginClient';
 import { Icons } from '@/components/icons';
+import { dynamicRoutes } from '@/app/config';
+import { getDynamicConfig } from '@/lib/dynamic';
+
+export const dynamic = getDynamicConfig('/auth/login');
 
 const loginSchema = z.object({
   email: z.string().email('Invalid email address'),

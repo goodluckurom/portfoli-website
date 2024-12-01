@@ -1,12 +1,15 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getSession } from '@/lib/auth';
+import { getDynamicConfig } from '@/lib/dynamic';
 
 interface RouteParams {
   params: {
     id: string;
   };
 }
+
+export const dynamic = getDynamicConfig('/api/projects/[id]');
 
 export async function GET(request: Request, { params }: RouteParams) {
   try {

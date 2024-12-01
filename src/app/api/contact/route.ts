@@ -1,5 +1,8 @@
 import { NextResponse } from "next/server";
 import nodemailer from "nodemailer";
+import { getDynamicConfig } from '@/lib/dynamic';
+
+export const dynamic = getDynamicConfig('/api/contact');
 
 const transporter = nodemailer.createTransport({
   host: process.env.SMTP_HOST,

@@ -66,7 +66,7 @@ export function ExperienceSection({ experiences, isLoading }: ExperienceSectionP
                 }`}
               >
                 {/* Timeline Dot */}
-                <div className="absolute left-0 md:left-1/2 w-5 h-5 bg-gradient-to-br from-primary-400 to-primary-600 rounded-full transform -translate-x-1/2 z-10 shadow-lg ring-4 ring-background-main dark:ring-background-main" />
+                <div className="absolute left-0 md:left-1/2 w-5 h-5 bg-gradient-to-br from-primary-100 to-primary-300 rounded-full transform -translate-x-1/2 z-10 shadow-lg ring-4 ring-background-main dark:ring-background-main" />
 
                 {/* Content */}
                 <div className={`${index % 2 === 0 ? 'md:text-right' : ''} ${

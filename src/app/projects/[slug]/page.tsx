@@ -3,14 +3,11 @@ import { notFound } from 'next/navigation';
 import { prisma } from '@/lib/prisma';
 import { ProjectClient } from './ProjectDetailClient';
 import { serializeMDX } from '@/lib/mdx';
+import { getDynamicConfig } from '@/lib/dynamic';
 
-interface PageProps {
-  params: {
-    slug: string;
-  };
-}
+export const dynamic = getDynamicConfig('/projects/[slug]');
 
-export default async function ProjectPage({ params }: PageProps) {
+export default async function ProjectPage({ params }: { params: { slug: string } }) {
   const project = await prisma.project.findUnique({
     where: { slug: params.slug },
   });
